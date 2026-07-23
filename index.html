@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Elite Prep | U.S. News Rankings Explorer</title>
+<style>
+:root{--navy:#0d2340;--blue:#235b9f;--gold:#c6a15b;--bg:#f4f7fb;--card:#fff;--text:#172033;--muted:#65728a;--line:#dce4ef;--good:#147a55;--bad:#b33a3a}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;background:var(--bg);color:var(--text)}
+header{background:linear-gradient(135deg,var(--navy),#173f70);color:white;padding:22px 28px}
+.brand{display:flex;align-items:center;gap:14px;max-width:1500px;margin:auto}.seal{width:50px;height:50px;border-radius:50%;background:white;color:var(--navy);display:grid;place-items:center;font-weight:800;border:3px solid var(--gold)}
+h1{font-size:25px;margin:0}.sub{opacity:.82;margin-top:4px;font-size:14px}
+main{max-width:1500px;margin:auto;padding:22px}.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px;box-shadow:0 3px 12px rgba(25,45,75,.05)}
+.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.metric{background:#f8fafd;border:1px solid var(--line);border-radius:12px;padding:13px}.metric b{font-size:23px;display:block;color:var(--navy)}.metric span{color:var(--muted);font-size:13px}
+.controls{display:grid;grid-template-columns:1.3fr 1fr 1fr 1fr 1fr auto;gap:10px;align-items:end}
+label{display:block;color:var(--muted);font-size:12px;font-weight:700;margin-bottom:5px}input,select,button{width:100%;border:1px solid #bfcbd9;border-radius:9px;padding:10px 11px;background:white;color:var(--text);font-size:14px}
+button{cursor:pointer;font-weight:700}.primary{background:var(--blue);color:white;border-color:var(--blue)}.secondary{background:white}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}.tab{width:auto;padding:9px 13px}.tab.active{background:var(--navy);color:white;border-color:var(--navy)}
+.tablewrap{overflow:auto;border:1px solid var(--line);border-radius:11px;max-height:680px}table{border-collapse:separate;border-spacing:0;width:100%;min-width:980px;font-size:13px}
+th,td{padding:10px 11px;border-bottom:1px solid var(--line);white-space:nowrap;text-align:right}th{position:sticky;top:0;background:#eef3f9;color:#33415a;z-index:2;cursor:pointer}th:first-child,td:first-child{text-align:left;position:sticky;left:0;background:inherit;z-index:1}th:first-child{z-index:3;background:#eef3f9}tbody tr:nth-child(even){background:#fafbfd}tbody tr:hover{background:#eef5ff}
+.rank{font-weight:800;color:var(--navy)}.up{color:var(--good);font-weight:700}.down{color:var(--bad);font-weight:700}.flat{color:var(--muted)}
+.compare-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.college-card{border:1px solid var(--line);border-radius:12px;padding:14px}.college-card h3{margin:0 0 3px}.small{font-size:12px;color:var(--muted)}.spark{width:100%;height:105px;margin-top:10px}
+.notice{font-size:13px;color:var(--muted);line-height:1.5}.hidden{display:none!important}
+@media(max-width:900px){.metrics{grid-template-columns:repeat(2,1fr)}.controls{grid-template-columns:1fr 1fr}.compare-grid{grid-template-columns:1fr}}
+@media(max-width:540px){header{padding:18px}main{padding:12px}.metrics,.controls{grid-template-columns:1fr}.seal{width:44px;height:44px}}
+@media print{header,.controls,.tabs,.no-print{display:none!important}body{background:white}.panel{box-shadow:none;border:0;padding:0}.tablewrap{max-height:none;overflow:visible}table{font-size:10px}}
+</style>
+</head>
+<body>
+<header><div class="brand"><div class="seal">EP</div><div><h1>U.S. News Historical College Rankings Explorer</h1><div class="sub">Compare National Universities and National Liberal Arts Colleges across decades</div></div></div></header>
+<main>
+<section class="panel metrics">
+<div class="metric"><b id="mInstitutions">—</b><span>Institutions in dataset</span></div>
+<div class="metric"><b id="mYears">—</b><span>Ranking years available</span></div>
+<div class="metric"><b id="mLatest">—</b><span>Latest ranking year</span></div>
+<div class="metric"><b id="mRows">—</b><span>Visible institutions</span></div>
+</section>
+
+<section class="panel">
+<div class="tabs no-print">
+<button class="tab active" data-view="snapshot">Year Snapshot</button>
+<button class="tab" data-view="change">Ranking Change</button>
+<button class="tab" data-view="history">Multi-Year History</button>
+<button class="tab" data-view="compare">College Comparison</button>
+</div>
+</section>
+
+<section class="panel controls no-print">
+<div><label for="search">Search institution</label><input id="search" placeholder="e.g., Stanford, Williams"></div>
+<div><label for="category">Category</label><select id="category"><option value="all">All categories</option></select></div>
+<div><label for="state">State</label><select id="state"><option value="all">All states</option></select></div>
+<div><label for="year1">Primary year</label><select id="year1"></select></div>
+<div><label for="year2">Comparison year</label><select id="year2"></select></div>
+<div><button id="reset" class="secondary">Reset</button></div>
+</section>
+
+<section id="snapshotView" class="panel view">
+<h2>Ranking Snapshot</h2><p class="notice">Click any column heading to sort. Tied ranks are preserved.</p>
+<div class="tablewrap"><table id="snapshotTable"><thead><tr><th data-sort="name">Institution</th><th data-sort="category">Category</th><th data-sort="state">State</th><th data-sort="ipeds">IPEDS</th><th data-sort="rank">Rank</th></tr></thead><tbody></tbody></table></div>
+</section>
+
+<section id="changeView" class="panel view hidden">
+<h2>Ranking Change</h2><p class="notice">Positive change means the institution moved toward rank No. 1. Non-numeric historical ranges or quartiles are shown but excluded from calculated change.</p>
+<div class="tablewrap"><table id="changeTable"><thead><tr><th data-sort="name">Institution</th><th data-sort="category">Category</th><th data-sort="state">State</th><th data-sort="rank1">Primary rank</th><th data-sort="rank2">Comparison rank</th><th data-sort="change">Change</th></tr></thead><tbody></tbody></table></div>
+</section>
+
+<section id="historyView" class="panel view hidden">
+<h2>Multi-Year History</h2><p class="notice">Use the primary and comparison year controls to define the displayed year range.</p>
+<div class="tablewrap"><table id="historyTable"><thead></thead><tbody></tbody></table></div>
+</section>
+
+<section id="compareView" class="panel view hidden">
+<h2>College Comparison</h2>
+<div class="controls" style="grid-template-columns:1fr 1fr auto">
+<div><label for="collegeA">College A</label><select id="collegeA"></select></div>
+<div><label for="collegeB">College B</label><select id="collegeB"></select></div>
+<div><button id="swap" class="primary">Swap</button></div>
+</div>
+<div id="compareCards" class="compare-grid" style="margin-top:16px"></div>
+</section>
+
+<section class="panel notice">
+<strong>Data note:</strong> Historical U.S. News rankings are not available for every institution in every year. Some source cells use tiers, quartiles, or ranges rather than a single numeric rank. The app preserves those source labels and does not convert them into invented numbers.
+</section>
+</main>
+<script>
+let DATA, institutions=[], rankings=[], rankMap=new Map(), activeView='snapshot', sortState={key:'rank',dir:1};
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function key(id,year){return id+'|'+year}
+function rankObj(id,year){return rankMap.get(key(id,year))||{rank:null,rank_display:null}}
+function options(el,vals,allLabel){el.innerHTML=(allLabel?`<option value="all">${allLabel}</option>`:'')+vals.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('')}
+function filtered(){
+ const q=$('#search').value.trim().toLowerCase(),cat=$('#category').value,st=$('#state').value;
+ return institutions.filter(x=>(!q||x.name.toLowerCase().includes(q))&&(cat==='all'||x.category===cat)&&(st==='all'||x.state===st));
+}
+function sortRows(rows,keyer){
+ rows.sort((a,b)=>{let av=keyer(a),bv=keyer(b); if(av==null) return 1;if(bv==null)return -1;if(typeof av==='string')return sortState.dir*av.localeCompare(bv);return sortState.dir*(av-bv)});return rows
+}
+function render(){
+ const list=filtered(), y1=+$('#year1').value,y2=+$('#year2').value; $('#mRows').textContent=list.length.toLocaleString();
+ if(activeView==='snapshot'){
+  let rows=list.map(x=>({...x,r:rankObj(x.institution_id,y1)}));
+  const getters={name:x=>x.name,category:x=>x.category,state:x=>x.state,ipeds:x=>x.ipeds_id,rank:x=>x.r.rank};
+  sortRows(rows,getters[sortState.key]||getters.rank);
+  $('#snapshotTable tbody').innerHTML=rows.map(x=>`<tr><td><strong>${esc(x.name)}</strong></td><td>${esc(x.category)}</td><td>${esc(x.state)}</td><td>${esc(x.ipeds_id)}</td><td class="rank">${esc(x.r.rank_display??'—')}</td></tr>`).join('');
+  $('#snapshotView h2').textContent=`${y1} Ranking Snapshot`;
+ } else if(activeView==='change'){
+  let rows=list.map(x=>{const a=rankObj(x.institution_id,y1),b=rankObj(x.institution_id,y2);return {...x,a,b,change:(a.rank!=null&&b.rank!=null)?b.rank-a.rank:null}});
+  const getters={name:x=>x.name,category:x=>x.category,state:x=>x.state,rank1:x=>x.a.rank,rank2:x=>x.b.rank,change:x=>x.change};
+  sortRows(rows,getters[sortState.key]||getters.change);
+  $('#changeTable tbody').innerHTML=rows.map(x=>{let c=x.change,cl=c>0?'up':c<0?'down':'flat',txt=c==null?'—':(c>0?'▲ +':'▼ ')+c; if(c===0)txt='No change';return `<tr><td><strong>${esc(x.name)}</strong></td><td>${esc(x.category)}</td><td>${esc(x.state)}</td><td class="rank">${esc(x.a.rank_display??'—')}</td><td>${esc(x.b.rank_display??'—')}</td><td class="${cl}">${esc(txt)}</td></tr>`}).join('');
+  $('#changeView h2').textContent=`Ranking Change: ${y2} to ${y1}`;
+ } else if(activeView==='history'){
+  let lo=Math.min(y1,y2),hi=Math.max(y1,y2),yrs=DATA.metadata.years.filter(y=>y>=lo&&y<=hi).sort((a,b)=>b-a);
+  $('#historyTable thead').innerHTML='<tr><th>Institution</th><th>Category</th><th>State</th>'+yrs.map(y=>`<th>${y}</th>`).join('')+'</tr>';
+  let rows=[...list].sort((a,b)=>a.name.localeCompare(b.name));
+  $('#historyTable tbody').innerHTML=rows.map(x=>`<tr><td><strong>${esc(x.name)}</strong></td><td>${esc(x.category)}</td><td>${esc(x.state)}</td>${yrs.map(y=>`<td>${esc(rankObj(x.institution_id,y).rank_display??'—')}</td>`).join('')}</tr>`).join('');
+ } else renderCompare();
+}
+function sparkline(inst){
+ const pts=DATA.metadata.years.map(y=>({y,r:rankObj(inst.institution_id,y).rank})).filter(x=>x.r!=null);
+ if(pts.length<2)return '<div class="small">Insufficient numeric history</div>';
+ const w=420,h=100,p=10,minY=Math.min(...pts.map(x=>x.y)),maxY=Math.max(...pts.map(x=>x.y)),maxR=Math.max(...pts.map(x=>x.r));
+ const xy=pts.map(x=>[p+(x.y-minY)/(maxY-minY)*(w-2*p),p+(x.r-1)/Math.max(1,maxR-1)*(h-2*p)]);
+ return `<svg class="spark" viewBox="0 0 ${w} ${h}" role="img" aria-label="Historical ranking trend"><polyline fill="none" stroke="#235b9f" stroke-width="3" points="${xy.map(a=>a.join(',')).join(' ')}"/><text x="10" y="96" font-size="11" fill="#65728a">${minY}</text><text x="385" y="96" font-size="11" fill="#65728a">${maxY}</text></svg>`;
+}
+function renderCompare(){
+ const ids=[$('#collegeA').value,$('#collegeB').value],y=+$('#year1').value;
+ $('#compareCards').innerHTML=ids.map(id=>{const x=institutions.find(i=>i.institution_id===id);if(!x)return'';let r=rankObj(id,y);let numeric=rankings.filter(z=>z.institution_id===id&&z.rank!=null).map(z=>z.rank);let best=numeric.length?Math.min(...numeric):null;return `<div class="college-card"><h3>${esc(x.name)}</h3><div class="small">${esc(x.category)} · ${esc(x.state)} · IPEDS ${esc(x.ipeds_id)}</div><div class="metrics" style="grid-template-columns:1fr 1fr;margin-top:12px"><div class="metric"><b>${esc(r.rank_display??'—')}</b><span>${y} rank</span></div><div class="metric"><b>${best??'—'}</b><span>Best numeric rank</span></div></div>${sparkline(x)}</div>`}).join('');
+}
+function bindSort(){
+ $$('th[data-sort]').forEach(th=>th.addEventListener('click',()=>{let k=th.dataset.sort;if(sortState.key===k)sortState.dir*=-1;else{sortState.key=k;sortState.dir=1}render()}))
+}
+async function init(){
+ try{DATA=await fetch('data/rankings.json').then(r=>{if(!r.ok)throw Error();return r.json()})}catch(e){document.body.innerHTML='<main style="padding:30px;font-family:sans-serif"><h2>Data file could not be loaded</h2><p>Open this project through GitHub Pages or another web server, and keep <code>data/rankings.json</code> beside <code>index.html</code>.</p></main>';return}
+ institutions=DATA.institutions;rankings=DATA.rankings;rankings.forEach(r=>rankMap.set(key(r.institution_id,r.year),r));
+ options($('#category'),DATA.metadata.categories,'All categories');options($('#state'),[...new Set(institutions.map(x=>x.state).filter(Boolean))].sort(),'All states');
+ let yrs=[...DATA.metadata.years].sort((a,b)=>b-a);options($('#year1'),yrs);options($('#year2'),yrs);$('#year1').value=yrs[0];$('#year2').value=yrs.includes(2021)?2021:yrs[Math.min(5,yrs.length-1)];
+ let collegeOpts=[...institutions].sort((a,b)=>a.name.localeCompare(b.name));options($('#collegeA'),collegeOpts.map(x=>x.institution_id));options($('#collegeB'),collegeOpts.map(x=>x.institution_id));
+ [...$('#collegeA').options].forEach((o,i)=>o.textContent=collegeOpts[i].name);[...$('#collegeB').options].forEach((o,i)=>o.textContent=collegeOpts[i].name);
+ $('#collegeA').value=collegeOpts[0]?.institution_id||'';$('#collegeB').value=collegeOpts[1]?.institution_id||'';
+ $('#mInstitutions').textContent=institutions.length.toLocaleString();$('#mYears').textContent=yrs.length;$('#mLatest').textContent=yrs[0];bindSort();render();
+}
+$$('.tab').forEach(b=>b.addEventListener('click',()=>{activeView=b.dataset.view;$$('.tab').forEach(x=>x.classList.toggle('active',x===b));$$('.view').forEach(v=>v.classList.add('hidden'));$('#'+activeView+'View').classList.remove('hidden');render()}));
+['search','category','state','year1','year2','collegeA','collegeB'].forEach(id=>$('#'+id).addEventListener(id==='search'?'input':'change',render));
+$('#reset').addEventListener('click',()=>{$('#search').value='';$('#category').value='all';$('#state').value='all';let ys=[...DATA.metadata.years].sort((a,b)=>b-a);$('#year1').value=ys[0];$('#year2').value=ys.includes(2021)?2021:ys[5];render()});
+$('#swap').addEventListener('click',()=>{let a=$('#collegeA').value;$('#collegeA').value=$('#collegeB').value;$('#collegeB').value=a;renderCompare()});
+init();
+</script>
+</body>
+</html>
